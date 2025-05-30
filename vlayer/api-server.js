@@ -1,12 +1,109 @@
 import express from 'express';
 import cors from 'cors';
 import { createVlayerClient } from "@vlayer/sdk";
-import proverSpec from "../out/SimpleProver.sol/SimpleProver";
-import verifierSpec from "../out/SimpleVerifier.sol/SimpleVerifier";
 import {
   getConfig,
   createContext,
 } from "@vlayer/sdk/config";
+
+// Mock ABI objects since we don't need the full contract info
+const proverAbi = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_owner",
+        "type": "address"
+      }
+    ],
+    "name": "balance",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "bytes4",
+                "name": "verifierSelector",
+                "type": "bytes4"
+              },
+              {
+                "internalType": "bytes32[8]",
+                "name": "seal",
+                "type": "bytes32[8]"
+              },
+              {
+                "internalType": "enum Mode",
+                "name": "mode",
+                "type": "uint8"
+              }
+            ],
+            "internalType": "struct Seal",
+            "name": "seal",
+            "type": "tuple"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "callGuestId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "length",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "proverContractAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes4",
+                "name": "functionSelector",
+                "type": "bytes4"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "settleChainId",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "settleBlockNumber",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "settleBlockHash",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct CallAssumptions",
+            "name": "callAssumptions",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct Proof",
+        "name": "",
+        "type": "tuple"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -92,7 +189,7 @@ app.post('/verify-age', async (req, res) => {
 
     const hash = await vlayer.prove({
       address: CONTRACTS.PROVER,
-      proverAbi: proverSpec.abi,
+      proverAbi: proverAbi,
       functionName: "balance",
       args: [userWallet.address],
       chainId: chain.id,
