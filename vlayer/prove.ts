@@ -1,15 +1,13 @@
 import { createVlayerClient } from "@vlayer/sdk";
 import nftSpec from "../out/ExampleNFT.sol/ExampleNFT";
-import tokenSpec from "../out/ExampleToken.sol/ExampleToken";
+import proverSpec from "../out/SimpleProver.sol/SimpleProver";
+import verifierSpec from "../out/SimpleVerifier.sol/SimpleVerifier";
 import {
   getConfig,
   createContext,
   deployVlayerContracts,
   waitForContractDeploy,
 } from "@vlayer/sdk/config";
-
-import proverSpec from "../out/SimpleProver.sol/SimpleProver";
-import verifierSpec from "../out/SimpleVerifier.sol/SimpleVerifier";
 
 const config = getConfig();
 const {
@@ -26,19 +24,8 @@ if (!john) {
   );
 }
 
-const INITIAL_TOKEN_SUPPLY = BigInt(10_000_000);
-
-const tokenDeployTransactionHash = await ethClient.deployContract({
-  abi: tokenSpec.abi,
-  bytecode: tokenSpec.bytecode.object,
-  account: john,
-  args: [john.address, INITIAL_TOKEN_SUPPLY],
-});
-
-const tokenAddress = await waitForContractDeploy({
-  client: ethClient,
-  hash: tokenDeployTransactionHash,
-});
+// Instead of deploying a new token, use the existing Age Verification NFT
+const AGE_VERIFICATION_NFT_ADDRESS = "0xd542B1ab9DD7065CC66ded19CE3dA42d41d8B15C";
 
 const nftDeployTransactionHash = await ethClient.deployContract({
   abi: nftSpec.abi,
@@ -55,7 +42,7 @@ const nftContractAddress = await waitForContractDeploy({
 const { prover, verifier } = await deployVlayerContracts({
   proverSpec,
   verifierSpec,
-  proverArgs: [tokenAddress],
+  proverArgs: [AGE_VERIFICATION_NFT_ADDRESS],
   verifierArgs: [nftContractAddress],
 });
 
@@ -74,7 +61,7 @@ const hash = await vlayer.prove({
   gasLimit: config.gasLimit,
 });
 const result = await vlayer.waitForProvingResult({ hash });
-const [proof, owner, balance] = result;
+const [proof, owner, nftBalance] = result;
 
 console.log("Proof result:", result);
 // Workaround for viem estimating gas with `latest` block causing future block assumptions to fail on slower chains like mainnet/sepolia
@@ -82,7 +69,7 @@ const gas = await ethClient.estimateContractGas({
   address: verifier,
   abi: verifierSpec.abi,
   functionName: "claimWhale",
-  args: [proof, owner, balance],
+  args: [proof, owner, nftBalance],
   account: john,
   blockTag: "pending",
 });
@@ -91,7 +78,7 @@ const verificationHash = await ethClient.writeContract({
   address: verifier,
   abi: verifierSpec.abi,
   functionName: "claimWhale",
-  args: [proof, owner, balance],
+  args: [proof, owner, nftBalance],
   account: john,
   gas,
 });

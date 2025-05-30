@@ -18,13 +18,14 @@ contract SimpleVerifier is Verifier {
         whaleNFT = ExampleNFT(_nft);
     }
 
-    function claimWhale(Proof calldata, address claimer, uint256 balance)
+    function claimWhale(Proof calldata, address claimer, uint256 nftBalance)
         public
         onlyVerified(prover, SimpleProver.balance.selector)
     {
         require(!claimed[claimer], "Already claimed");
 
-        if (balance > 10_000_000) {
+        // If user owns at least 1 Age Verification NFT, they're verified
+        if (nftBalance > 0) {
             claimed[claimer] = true;
             whaleNFT.mint(claimer);
         }
