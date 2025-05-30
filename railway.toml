@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd vlayer && bun install"
+   
+[deploy]
+startCommand = "cd vlayer && bun run api:testnet"
+restartPolicyType = "on_failure" 
