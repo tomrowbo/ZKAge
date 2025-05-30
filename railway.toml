@@ -1,7 +1,7 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd vlayer && bun install"
+buildCommand = "curl -fsSL https://bun.sh/install | bash && ~/.bun/bin/bun --version && cd vlayer && ~/.bun/bin/bun install"
    
 [deploy]
-startCommand = "cd vlayer && bun run api:testnet"
+startCommand = "export PATH=$PATH:~/.bun/bin && cd vlayer && bun run api:testnet"
 restartPolicyType = "on_failure" 
