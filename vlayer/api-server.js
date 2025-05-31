@@ -234,6 +234,72 @@ app.get('/demo-wallet', (req, res) => {
   });
 });
 
+// New endpoint for privacy-preserving NFC verification
+app.get('/nfc-proof', async (req, res) => {
+  try {
+    // Ensure wallet is initialized
+    if (!userWallet) {
+      return res.status(500).json({ error: 'Wallet not initialized yet' });
+    }
+
+    const config = getConfig();
+    const {
+      chain,
+      proverUrl,
+    } = createContext(config);
+
+    // Create proof using the custodial wallet
+    console.log(`Generating proof for custodial wallet: ${userWallet.address}`);
+    const vlayer = createVlayerClient({
+      url: proverUrl,
+      token: config.token,
+    });
+
+    const hash = await vlayer.prove({
+      address: CONTRACTS.PROVER,
+      proverAbi: proverAbi,
+      functionName: "balance",
+      args: [userWallet.address],
+      chainId: chain.id,
+      gasLimit: config.gasLimit,
+    });
+
+    const result = await vlayer.waitForProvingResult({ hash });
+    const [proof, owner, nftBalance] = result;
+
+    // Extract only the verification-relevant parts
+    // Remove any identifying information
+    const privacyPreservingProof = {
+      // Keep only the cryptographic seal and verification data
+      proofData: {
+        seal: proof.seal,
+        length: proof.length,
+        // Anonymize the callAssumptions
+        callAssumptions: {
+          proverContractAddress: proof.callAssumptions.proverContractAddress,
+          functionSelector: proof.callAssumptions.functionSelector,
+          settleChainId: proof.callAssumptions.settleChainId,
+          settleBlockNumber: proof.callAssumptions.settleBlockNumber,
+          settleBlockHash: proof.callAssumptions.settleBlockHash
+        }
+      },
+      // Just a boolean - no actual balance value
+      isVerified: nftBalance > 0,
+      // Include verification timestamp
+      timestamp: new Date().toISOString()
+    };
+
+    // Return stripped proof result for NFC transmission
+    res.json({
+      privacyNote: "This proof is designed to be transmitted via NFC without revealing the user's wallet address",
+      verificationProof: privacyPreservingProof,
+    });
+  } catch (error) {
+    console.error('Error generating privacy-preserving proof:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Start server
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
