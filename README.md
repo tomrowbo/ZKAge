@@ -1,66 +1,92 @@
-## Foundry
+# ZKTap Circuit Implementation
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This directory contains the circuit implementation for ZKTap's zero-knowledge proof system, built with Foundry and VLayer.
 
-Foundry consists of:
+## 🔒 Overview
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+The ZKTap circuit implementation handles the cryptographic core of the system - the zero-knowledge proofs that allow users to prove facts without revealing personal information. This component is responsible for defining the circuit logic that verifies claims cryptographically.
 
-## Documentation
+## 💡 Features
 
-https://book.getfoundry.sh/
+- **Age Verification Circuit**: Verifies a user is over 18 without revealing their actual age
+- **NFT Ownership Circuit**: Proves ownership of an NFT without revealing the wallet address
+- **Membership Verification**: Validates membership status without exposing identity
+- **VLayer Integration**: Leverages VLayer for efficient zk-SNARK generation
 
-## Usage
+## 📋 Circuit Architecture
+
+- Circuit constraints that verify:
+  - Valid NFT ownership
+  - Valid age verification
+  - Signature validation
+  - Timestamp checking
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Foundry](https://book.getfoundry.sh/getting-started/installation.html)
+- [VLayer SDK](https://github.com/vlayer-xyz/vlayer-sdk)
+- Solidity 0.8.x
+- Access to an Ethereum node (for testing)
+
+### Installation
+
+1. Clone this repository
+2. Install dependencies:
+   ```bash
+   forge install
+   ```
+
+## 🔧 Development
 
 ### Build
 
-```shell
-$ forge build
+```bash
+forge build
 ```
 
 ### Test
 
-```shell
-$ forge test
+```bash
+forge test
 ```
 
-### Format
+### Local Development
 
-```shell
-$ forge fmt
+Start a local Ethereum node:
+```bash
+anvil
 ```
 
-### Gas Snapshots
+## 🧩 Circuit Logic
 
-```shell
-$ forge snapshot
-```
+The core circuit logic validates that:
 
-### Anvil
+1. The prover owns an ERC-721 token from the verified age contract
+2. The token ID corresponds to a valid age verification
+3. The token hasn't been revoked
+4. Additional constraints for privacy preservation
 
-```shell
-$ anvil
-```
+This allows users to prove they meet age requirements without revealing their wallet address, token ID, or personal information.
 
-### Deploy
+## 🔍 Integration with ZKTap System
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+These circuits provide the cryptographic foundation for the ZKTap system:
 
-### Cast
+1. User obtains an Age Verification NFT through the verification process
+2. The ZKTap mobile app uses these circuits to generate a zero-knowledge proof
+3. The proof is transmitted via NFC to the reader
+4. The reader verifies the proof cryptographically
 
-```shell
-$ cast <subcommand>
-```
+## 📚 Learn More
 
-### Help
+For more information on Foundry:
+https://book.getfoundry.sh/
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+For more information on VLayer:
+https://book.vlayer.xyz/
+
+## 📝 License
+
+[MIT License](../LICENSE)
